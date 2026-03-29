@@ -23,7 +23,6 @@ import { useEffect, useState } from 'react';
 
 export function ChangeEmailDialog({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation('common');
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [error, setError] = useState('');
   const { user } = useSession();
@@ -31,7 +30,7 @@ export function ChangeEmailDialog({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setError('');
-  }, [currentPassword, newEmail]);
+  }, [newEmail]);
 
   const { mutate: sendChangeEmailCodeMutation, isLoading: changeEmailLoading, isSuccess } =
     useMutation({
@@ -55,8 +54,6 @@ export function ChangeEmailDialog({ children }: { children: React.ReactNode }) {
       onError: (error: HttpError) => {
         if (error.code === HttpErrorCode.CONFLICT) {
           setError(t('settings.account.changeEmail.error.invalidConflict'));
-        } else if (error.code === HttpErrorCode.INVALID_CREDENTIALS) {
-          setError(t('settings.account.changeEmail.error.invalidPassword'));
         } else {
           setError(error.message);
         }
@@ -77,20 +74,6 @@ export function ChangeEmailDialog({ children }: { children: React.ReactNode }) {
         </DialogHeader>
         <div className="space-y-2">
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground" htmlFor="currentPassword">
-              {t('settings.account.changeEmail.current')}
-            </Label>
-            <Input
-              className="h-7"
-              id="currentPassword"
-              autoComplete="current-password"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              aria-autocomplete="inline"
-            />
-          </div>
-          <div className="space-y-1">
             <Label className="text-xs text-muted-foreground" htmlFor="newEmail">
               {t('settings.account.changeEmail.new')}
             </Label>
@@ -108,8 +91,8 @@ export function ChangeEmailDialog({ children }: { children: React.ReactNode }) {
         <Button
           className="w-full"
           size={"sm"}
-          onClick={() => sendChangeEmailCodeMutation({ email: newEmail, password: currentPassword })}
-          disabled={changeEmailLoading || isSuccess || !newEmail || !currentPassword}
+          onClick={() => sendChangeEmailCodeMutation({ email: newEmail, password: '' })}
+          disabled={changeEmailLoading || isSuccess || !newEmail}
         >
           {changeEmailLoading && <Spin className="size-4" />}
           {t('actions.confirm')}

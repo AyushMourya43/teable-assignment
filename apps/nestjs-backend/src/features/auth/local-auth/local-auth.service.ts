@@ -303,7 +303,7 @@ export class LocalAuthService {
     await this.sessionStoreService.clearByUserId(user.id);
   }
 
-  async sendChangeEmailCode(newEmail: string, password: string) {
+  async sendChangeEmailCode(newEmail: string, password?: string) {
     const email = this.cls.get('user.email');
     if (newEmail === email) {
       throw new CustomHttpException(
@@ -311,21 +311,11 @@ export class LocalAuthService {
         HttpErrorCode.CONFLICT
       );
     }
-    const invalidPasswordError = new CustomHttpException(
-      'Password is incorrect',
-      HttpErrorCode.INVALID_CREDENTIALS
-    );
-    const user = await this.validateUserByEmail(email, password).catch(() => {
-      throw invalidPasswordError;
-    });
-    if (!user) {
-      throw invalidPasswordError;
-    }
     const userByNewEmail = await this.userService.getUserByEmail(newEmail);
     if (userByNewEmail) {
       throw new ConflictException('New email is already registered');
     }
-    // Directly update email without verification
+    // Directly update email without verification or password
     const userObj = this.cls.get('user');
     await this.prismaService.txClient().user.update({
       where: { id: userObj.id, deletedTime: null, deactivatedTime: null },
