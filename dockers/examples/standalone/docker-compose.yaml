@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   teable:
-    image: ghcr.io/teableio/teable:latest
+    image: teable-custom
     restart: always
     ports:
       - '3000:3000'
