@@ -325,22 +325,13 @@ export class LocalAuthService {
     if (userByNewEmail) {
       throw new ConflictException('New email is already registered');
     }
-    const code = getRandomString(6);
-    const token = await this.jwtService.signAsync(
-      { email, newEmail, code },
-      { expiresIn: this.baseConfig.emailCodeExpiresIn }
-    );
-    if (this.baseConfig.enableEmailCodeConsole) {
-      console.info('Change Email Verification code: ', '\x1b[34m' + code + '\x1b[0m');
-    }
-    const emailOptions = await this.mailSenderService.sendEmailVerifyCodeEmailOptions({
-      title: 'Change Email verification',
-      message: `Your verification code is ${code}, expires in ${this.baseConfig.emailCodeExpiresIn}.`,
+    // Directly update email without verification
+    const userObj = this.cls.get('user');
+    await this.prismaService.txClient().user.update({
+      where: { id: userObj.id, deletedTime: null, deactivatedTime: null },
+      data: { email: newEmail },
     });
-    await this.mailSenderService.sendMail({
-      to: newEmail,
-      ...emailOptions,
-    });
-    return { token };
+    await this.sessionStoreService.clearByUserId(userObj.id);
+    return { token: '' };
   }
 }
